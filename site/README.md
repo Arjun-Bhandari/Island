@@ -1,36 +1,62 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Island — landing page
 
-## Getting Started
+The marketing site for [Island](../README.md), a notch-based productivity app for macOS. Dark, Apple-style design with spring-based motion.
 
-First, run the development server:
+Live at `island.<your-domain>` (deployed on Vercel).
+
+## Stack
+
+- [Next.js](https://nextjs.org) (App Router)
+- [Tailwind CSS](https://tailwindcss.com)
+- [Motion](https://motion.dev) (Framer Motion) for the spring-based reveal and tab animations
+- [lucide-react](https://lucide.dev) for icons
+
+## What's on the page
+
+- **Hero** — headline, download button (links to the GitHub release's latest zip), "View source" link
+- **Notch preview** — a mock of the real app's notch UI that auto-cycles through all five tabs (Home, Todo, Scripts, Monitor, Cleanup) every 3 seconds, pauses on hover, and only animates in once it scrolls into view (no animation on initial page load)
+- **Feature grid** — the four modules, each with its own icon
+- **Keyboard-shortcuts callout** — default bindings, since the app is built to be used without a mouse
+- Favicon/app icon shared with the macOS app (`app/icon.png`, copied from `../Resources/icon_1024.png`)
+
+## Development
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run build   # production build — run this before deploying to catch errors
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Updating the download link
 
-## Learn More
+`app/page.tsx` points `DOWNLOAD_URL` at:
 
-To learn more about Next.js, take a look at the following resources:
+```
+https://github.com/Arjun-Bhandari/Island/releases/latest/download/Island-<version>.zip
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Bump the version in that constant whenever you publish a new release with a different zip filename. (If the GitHub release is **not** marked "Pre-release" and is the newest one, GitHub's `/releases/latest/` alias resolves automatically — only the filename needs updating.)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Deploying
 
-## Deploy on Vercel
+Deployed on [Vercel](https://vercel.com). Since this app lives in a subfolder of the `Island` repo, **set the project's Root Directory to `site`** when importing — otherwise Vercel will try to build from the repo root and fail (there's a Swift package there, not a Next.js app).
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. [vercel.com/new](https://vercel.com/new) → import the `Island` repo
+2. Root Directory: `site`
+3. Framework preset: Next.js (auto-detected)
+4. Deploy
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Custom domain
+
+In the Vercel project's Settings → Domains, add your subdomain (e.g. `island.yourdomain.com`). At your DNS provider, add a **CNAME** record:
+
+| Name | Type | Value |
+|---|---|---|
+| `island` | CNAME | `cname.vercel-dns.com` |
+
+(Use a CNAME, not an A record — the `76.76.21.21` A record is only for apex/root domains that can't use CNAME.)
