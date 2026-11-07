@@ -22,6 +22,21 @@ cp "$BUILD_DIR/$APP_NAME" "$APP_BUNDLE/Contents/MacOS/$APP_NAME"
 cp "Resources/Info.plist" "$APP_BUNDLE/Contents/Info.plist"
 cp "Resources/AppIcon.icns" "$APP_BUNDLE/Contents/Resources/AppIcon.icns"
 
+# SPM dependencies with their own resources (e.g. KeyboardShortcuts' UI
+# strings) produce a .bundle next to the release binary. `swift build`
+# doesn't package these into an .app for you — copy every one across, or
+# the app crashes on launch on any machine that isn't this dev checkout.
+# Contents/Resources is the standard, signature-covered location SPM's
+# generated accessor checks (a loose copy at the bundle root makes
+# codesign refuse to sign — "unsealed contents present in the bundle root").
+shopt -s nullglob
+for bundle in "$BUILD_DIR"/*.bundle; do
+    name="$(basename "$bundle")"
+    echo "==> Bundling resource: $name"
+    cp -R "$bundle" "$APP_BUNDLE/Contents/Resources/$name"
+done
+shopt -u nullglob
+
 echo "==> Ad-hoc signing (no Developer account needed)..."
 codesign --force --deep --sign - "$APP_BUNDLE"
 
