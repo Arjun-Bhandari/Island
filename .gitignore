@@ -1,0 +1,6 @@
+.build/
+.swiftpm/
+dist/
+Resources/Island.iconset/
+*.xcodeproj
+.DS_Store
