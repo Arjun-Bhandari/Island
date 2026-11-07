@@ -6,10 +6,12 @@ import KeyboardShortcuts
 struct SettingsView: View {
     @State private var loginItem = LoginItem()
     @State private var launchAtLoginEnabled = false
+    @AppStorage(NotchController.keyboardOnlyKey) private var keyboardOnly = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             launchAtLoginRow
+            keyboardOnlyRow
 
             Divider().background(.white.opacity(0.1))
 
@@ -40,6 +42,23 @@ struct SettingsView: View {
         .padding(16)
         .frame(width: 520, alignment: .leading)
         .onAppear { launchAtLoginEnabled = loginItem.isEnabled }
+    }
+
+    private var keyboardOnlyRow: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 1) {
+                Text("Keyboard only")
+                    .font(.system(size: 13))
+                    .foregroundStyle(.white)
+                Text("Hovering the notch won't open it — use the toggle shortcut")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
+            Spacer()
+            Toggle("", isOn: $keyboardOnly)
+                .labelsHidden()
+                .toggleStyle(.switch)
+        }
     }
 
     private var launchAtLoginRow: some View {

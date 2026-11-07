@@ -10,6 +10,8 @@ import KeyboardShortcuts
 /// "pinned open" flag so a hover-exit grace timer doesn't fight them.
 @MainActor
 final class NotchController {
+    static let keyboardOnlyKey = "keyboardOnlyMode"
+
     private var notch: DynamicNotch<NotchExpandedView, NotchCompactLeading, EmptyView>?
     private var cancellable: AnyCancellable?
     private var escMonitor: Any?
@@ -47,6 +49,7 @@ final class NotchController {
 
     private var wasHovering = false
     private var collapseTask: Task<Void, Never>?
+    private var expandTask: Task<Void, Never>?
     /// True while the notch was opened by a keyboard shortcut rather than
     /// hover — keeps it open even though the mouse never entered it.
     private var keyboardPinned = false
@@ -61,21 +64,26 @@ final class NotchController {
         wasHovering = notch.isHovering
 
         if notch.isHovering {
+            guard !UserDefaults.standard.bool(forKey: Self.keyboardOnlyKey) else { return }
             // Mouse has taken over — hand control back to normal hover
             // behavior so moving away afterward collapses it like usual.
             keyboardPinned = false
             collapseTask?.cancel()
-            Task {
+            // Require the cursor to dwell briefly so merely passing over the notch doesn't open it.
+            expandTask = Task {
+                try? await Task.sleep(for: .milliseconds(400))
+                guard !Task.isCancelled else { return }
                 await notch.expand()
                 // Lets typing (quick-add todo, recording a shortcut in
                 // Settings) work even when opened by hover, not just keyboard.
                 notch.windowController?.window?.makeKey()
             }
         } else {
+            expandTask?.cancel()
             guard !keyboardPinned else { return }
             collapseTask?.cancel()
             collapseTask = Task {
-                try? await Task.sleep(for: .milliseconds(350))
+                try? await Task.sleep(for: .milliseconds(120))
                 guard !Task.isCancelled else { return }
                 await notch.compact()
             }
@@ -113,6 +121,7 @@ final class NotchController {
     private func openViaKeyboard(on tab: NotchTab) {
         guard let notch else { return }
         collapseTask?.cancel()
+        expandTask?.cancel()
         keyboardPinned = true
         uiState.tab = tab
 
