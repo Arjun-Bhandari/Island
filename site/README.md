@@ -13,7 +13,7 @@ Live at `island.<your-domain>` (deployed on Vercel).
 
 ## What's on the page
 
-- **Hero** — headline, download button (links to the GitHub release's latest zip), "View source" link
+- **Hero** — headline, download button (links to the latest GitHub release's `Island.zip`), "View source" link
 - **Notch preview** — a mock of the real app's notch UI that auto-cycles through all five tabs (Home, Todo, Scripts, Monitor, Cleanup) every 3 seconds, pauses on hover, and only animates in once it scrolls into view (no animation on initial page load)
 - **Feature grid** — the four modules, each with its own icon
 - **Keyboard-shortcuts callout** — default bindings, since the app is built to be used without a mouse
@@ -37,10 +37,10 @@ npm run build   # production build — run this before deploying to catch errors
 `app/page.tsx` points `DOWNLOAD_URL` at:
 
 ```
-https://github.com/Arjun-Bhandari/Island/releases/latest/download/Island-<version>.zip
+https://github.com/Arjun-Bhandari/Island/releases/latest/download/Island.zip
 ```
 
-Bump the version in that constant whenever you publish a new release with a different zip filename. (If the GitHub release is **not** marked "Pre-release" and is the newest one, GitHub's `/releases/latest/` alias resolves automatically — only the filename needs updating.)
+It never needs editing. `scripts/build-app.sh` writes both `dist/Island-<version>.zip` and an unversioned `dist/Island.zip` — attach `Island.zip` to every release. GitHub's `/releases/latest/` alias resolves to the newest release that isn't marked "Pre-release".
 
 ## Deploying
 

@@ -45,10 +45,14 @@ VERSION=$(/usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" "$APP_BU
 ZIP_PATH="$DIST_DIR/$APP_NAME-$VERSION.zip"
 rm -f "$ZIP_PATH"
 ditto -c -k --keepParent "$APP_BUNDLE" "$ZIP_PATH"
+# Unversioned copy so the site can link to releases/latest/download/Island.zip forever.
+LATEST_ZIP="$DIST_DIR/$APP_NAME.zip"
+cp "$ZIP_PATH" "$LATEST_ZIP"
 
 echo ""
 echo "Done:"
 echo "  App: $APP_BUNDLE"
 echo "  Zip: $ZIP_PATH"
+echo "  Zip: $LATEST_ZIP  (attach to every release — the site's download link uses it)"
 echo ""
 echo "First launch on another Mac: right-click the app > Open (unsigned build)."
