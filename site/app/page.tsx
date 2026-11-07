@@ -4,7 +4,7 @@ import { NotchPreview } from "./components/NotchPreview";
 import { DownloadButton } from "./components/DownloadButton";
 
 const DOWNLOAD_URL =
-  "https://github.com/Arjun-Bhandari/Island/releases/latest/download/Island-1.0.1.zip";
+  "https://github.com/Arjun-Bhandari/Island/releases/latest/download/Island.zip";
 const REPO_URL = "https://github.com/Arjun-Bhandari/Island";
 
 const features = [
