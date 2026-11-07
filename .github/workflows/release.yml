@@ -1,0 +1,62 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "Sources/**"
+      - "Resources/**"
+      - "Package.swift"
+      - "Package.resolved"
+      - "scripts/**"
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    # The bump commit is pushed with GITHUB_TOKEN, which never re-triggers workflows; this guard is a second safety net.
+    if: "!startsWith(github.event.head_commit.message, 'chore: release v')"
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Bump patch version
+        id: version
+        run: |
+          PLIST=Resources/Info.plist
+          CURRENT=$(/usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" "$PLIST")
+          IFS=. read -r MAJOR MINOR PATCH <<< "$CURRENT"
+          NEXT="$MAJOR.$MINOR.$((PATCH + 1))"
+          BUILD=$(( $(/usr/libexec/PlistBuddy -c "Print CFBundleVersion" "$PLIST") + 1 ))
+          /usr/libexec/PlistBuddy -c "Set CFBundleShortVersionString $NEXT" -c "Set CFBundleVersion $BUILD" "$PLIST"
+          echo "version=$NEXT" >> "$GITHUB_OUTPUT"
+          echo "$CURRENT -> $NEXT (build $BUILD)"
+
+      - name: Build app
+        run: ./scripts/build-app.sh
+
+      - name: Commit and tag
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "chore: release v$VERSION"
+          git tag "v$VERSION"
+          git push origin HEAD:main "v$VERSION"
+
+      - name: Publish release
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "v$VERSION" \
+            "dist/Island-$VERSION.zip" \
+            "dist/Island.zip" \
+            --title "Island v$VERSION" \
+            --generate-notes

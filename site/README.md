@@ -40,7 +40,7 @@ npm run build   # production build — run this before deploying to catch errors
 https://github.com/Arjun-Bhandari/Island/releases/latest/download/Island.zip
 ```
 
-It never needs editing. `scripts/build-app.sh` writes both `dist/Island-<version>.zip` and an unversioned `dist/Island.zip` — attach `Island.zip` to every release. GitHub's `/releases/latest/` alias resolves to the newest release that isn't marked "Pre-release".
+It never needs editing. `scripts/build-app.sh` writes both `dist/Island-<version>.zip` and an unversioned `dist/Island.zip`, and the Release workflow (`.github/workflows/release.yml`) attaches both to every release it publishes. GitHub's `/releases/latest/` alias resolves to the newest release that isn't marked "Pre-release".
 
 ## Deploying
 
