@@ -148,17 +148,22 @@ final class NotchController {
         openViaKeyboard(on: tab)
     }
 
-    /// The notch panel sits at .screenSaver level, so a plain runModal() draws
-    /// the open panel *underneath* it, and moving the mouse onto the dialog
-    /// collapses the notch and throws away the form that asked for it. Raise
-    /// the dialog above the notch and hold the notch open until it's dismissed.
+    /// The notch panel sits at .screenSaver level, so a file dialog opens
+    /// *underneath* it, and moving the mouse onto the dialog collapses the
+    /// notch and throws away the form that asked for it. runModal() resets
+    /// the dialog's own level, so instead drop the notch below the dialog for
+    /// the duration and hold it open until the dialog is dismissed.
     static func runModal(_ panel: NSOpenPanel) -> URL? {
         let controller = shared
         let notchWindow = controller?.notch?.windowController?.window
+        // DynamicNotchKit can keep more than one panel around; lower all of them.
+        let raised = NSApp.windows.filter { $0.level >= .screenSaver }
+        let originalLevels = raised.map(\.level)
         controller?.isPresentingModal = true
+        raised.forEach { $0.level = .floating }
         NSApp.activate(ignoringOtherApps: true)
-        panel.level = NSWindow.Level(rawValue: (notchWindow?.level ?? .screenSaver).rawValue + 1)
         let url = panel.runModal() == .OK ? panel.url : nil
+        zip(raised, originalLevels).forEach { $0.level = $1 }
         controller?.isPresentingModal = false
         notchWindow?.makeKey()
         if let controller, let notch = controller.notch, !notch.isHovering, !controller.keyboardPinned {

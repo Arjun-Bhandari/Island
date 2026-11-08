@@ -97,13 +97,14 @@ struct ScriptRunnerView: View {
                 Image(systemName: draftIcon ?? ScriptIcon.suggested(for: draftCommand))
                     .font(.system(size: 14, weight: .medium))
                     .foregroundStyle(.white)
-                    .frame(width: 34, height: 34)
-                    .background(.white.opacity(0.12), in: RoundedRectangle(cornerRadius: 8))
+                    .frame(width: 28, height: 28)
+                    .background(.white.opacity(0.12), in: RoundedRectangle(cornerRadius: 7))
                     .contentTransition(.symbolEffect(.replace))
                 FormField(placeholder: "Name, e.g. Start API", text: $draftName)
                     .focused($nameFocused)
                 KeyboardShortcuts.Recorder(for: ScriptStore.runShortcutName(for: draftID))
-                    .frame(width: 130)
+                    .controlSize(.large)
+                    .frame(width: 140)
                     .help("Optional global shortcut that runs or stops this script")
             }
 
@@ -394,9 +395,10 @@ private struct FormField: View {
         TextField(placeholder, text: $text)
             .textFieldStyle(.plain)
             .font(monospaced ? .system(size: 12, design: .monospaced) : .system(size: 13))
+            // Matches the native shortcut recorder's fixed .large height so the first row lines up.
             .padding(.horizontal, 10)
-            .frame(height: 34)
-            .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 8))
+            .frame(height: 28)
+            .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 7))
             .foregroundStyle(.white)
     }
 }
