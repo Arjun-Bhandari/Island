@@ -3,8 +3,10 @@ import { CheckSquare, SquareTerminal, Trash2, Activity } from "lucide-react";
 import { NotchPreview } from "./components/NotchPreview";
 import { DownloadButton } from "./components/DownloadButton";
 
+const INSTALL_COMMAND =
+  "curl -fsSL https://raw.githubusercontent.com/Arjun-Bhandari/Island/main/scripts/install.sh | bash";
 const DOWNLOAD_URL =
-  "https://github.com/Arjun-Bhandari/Island/releases/latest/download/Island.zip";
+  "https://github.com/Arjun-Bhandari/Island/releases/latest/download/Island.dmg";
 const REPO_URL = "https://github.com/Arjun-Bhandari/Island";
 
 const features = [
@@ -74,8 +76,11 @@ export default function Home() {
           </DownloadButton>
         </div>
         <p className="mt-4 text-sm font-medium text-white/55">
-          macOS 14+ · Unsigned build — right-click → Open on first launch
+          macOS 14+ · or install from Terminal:
         </p>
+        <code className="mt-2 max-w-full select-all overflow-x-auto whitespace-nowrap rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 font-mono text-xs text-white/70">
+          {INSTALL_COMMAND}
+        </code>
       </section>
 
       {/* Preview */}

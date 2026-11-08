@@ -23,13 +23,13 @@ final class ScriptStore {
     /// Per-script shortcut, recordable right on its row — no default, since
     /// there's no sane default for a user-defined, unbounded list. Registers
     /// harmlessly even if the user never assigns one.
-    static func runShortcutName(for item: ScriptItem) -> KeyboardShortcuts.Name {
-        .init("runScript_\(item.id.uuidString)")
+    static func runShortcutName(for id: UUID) -> KeyboardShortcuts.Name {
+        .init("runScript_\(id.uuidString)")
     }
 
     private func registerRunShortcuts() {
         for item in scripts {
-            KeyboardShortcuts.onKeyUp(for: Self.runShortcutName(for: item)) { [weak self] in
+            KeyboardShortcuts.onKeyUp(for: Self.runShortcutName(for: item.id)) { [weak self] in
                 self?.toggle(item)
             }
         }
@@ -38,6 +38,8 @@ final class ScriptStore {
     /// Same run/stop toggle the row's button does, so one shortcut both
     /// starts a script and later stops it — no separate stop binding needed.
     func toggle(_ item: ScriptItem) {
+        // Shortcut closures capture the item as it was at registration; run the edited version.
+        guard let item = scripts.first(where: { $0.id == item.id }) else { return }
         if isRunning(item) {
             stop(item)
         } else {
@@ -45,19 +47,20 @@ final class ScriptStore {
         }
     }
 
-    func add(name: String, command: String, workingDirectory: String = NSHomeDirectory()) {
+    /// `id` lets the form record a shortcut for a script before it's saved.
+    func add(id: UUID = UUID(), name: String, command: String, workingDirectory: String = NSHomeDirectory(), icon: String? = nil) {
         let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedCommand = command.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedName.isEmpty, !trimmedCommand.isEmpty else { return }
-        let item = ScriptItem(name: trimmedName, command: trimmedCommand, workingDirectory: workingDirectory)
+        let item = ScriptItem(id: id, name: trimmedName, command: trimmedCommand, workingDirectory: workingDirectory, icon: icon)
         scripts.append(item)
-        KeyboardShortcuts.onKeyUp(for: Self.runShortcutName(for: item)) { [weak self] in
+        KeyboardShortcuts.onKeyUp(for: Self.runShortcutName(for: item.id)) { [weak self] in
             self?.toggle(item)
         }
         persist()
     }
 
-    func update(_ item: ScriptItem, name: String, command: String, workingDirectory: String) {
+    func update(_ item: ScriptItem, name: String, command: String, workingDirectory: String, icon: String?) {
         guard let index = scripts.firstIndex(where: { $0.id == item.id }) else { return }
         let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedCommand = command.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -65,6 +68,7 @@ final class ScriptStore {
         scripts[index].name = trimmedName
         scripts[index].command = trimmedCommand
         scripts[index].workingDirectory = workingDirectory
+        scripts[index].icon = icon
         persist()
     }
 
@@ -72,7 +76,7 @@ final class ScriptStore {
         stop(item) // never leave a running process orphaned behind a deleted entry
         scripts.removeAll { $0.id == item.id }
         statuses[item.id] = nil
-        KeyboardShortcuts.reset(Self.runShortcutName(for: item)) // free the keybinding
+        KeyboardShortcuts.reset(Self.runShortcutName(for: item.id)) // free the keybinding
         persist()
     }
 

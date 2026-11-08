@@ -13,6 +13,11 @@ let package = Package(
             name: "Island",
             dependencies: ["DynamicNotchKit", "KeyboardShortcuts"],
             path: "Sources/Island"
+        ),
+        .testTarget(
+            name: "IslandTests",
+            dependencies: ["Island"],
+            path: "Tests/IslandTests"
         )
     ]
 )
