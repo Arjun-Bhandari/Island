@@ -1,5 +1,5 @@
 #!/bin/bash
-# Builds Island.app in release mode and zips it for distribution.
+# Builds Island.app in release mode and packages it as a .dmg (for the site) and a .zip (for install.sh).
 # Unsigned (ad-hoc signed) — friends right-click > Open the first time.
 set -euo pipefail
 
@@ -49,10 +49,24 @@ ditto -c -k --keepParent "$APP_BUNDLE" "$ZIP_PATH"
 LATEST_ZIP="$DIST_DIR/$APP_NAME.zip"
 cp "$ZIP_PATH" "$LATEST_ZIP"
 
+echo "==> Building disk image..."
+# Classic drag-to-install DMG: the app next to an Applications shortcut.
+DMG_STAGING="$(mktemp -d)"
+trap 'rm -rf "$DMG_STAGING"' EXIT
+ditto "$APP_BUNDLE" "$DMG_STAGING/$APP_NAME.app"
+ln -s /Applications "$DMG_STAGING/Applications"
+DMG_PATH="$DIST_DIR/$APP_NAME-$VERSION.dmg"
+rm -f "$DMG_PATH"
+hdiutil create -quiet -volname "$APP_NAME" -srcfolder "$DMG_STAGING" -fs HFS+ -format UDZO -ov "$DMG_PATH"
+LATEST_DMG="$DIST_DIR/$APP_NAME.dmg"
+cp "$DMG_PATH" "$LATEST_DMG"
+
 echo ""
 echo "Done:"
 echo "  App: $APP_BUNDLE"
 echo "  Zip: $ZIP_PATH"
-echo "  Zip: $LATEST_ZIP  (attach to every release — the site's download link uses it)"
+echo "  Dmg: $DMG_PATH"
+echo "  Zip: $LATEST_ZIP  (install.sh downloads this)"
+echo "  Dmg: $LATEST_DMG  (the site's download button links to this)"
 echo ""
-echo "First launch on another Mac: right-click the app > Open (unsigned build)."
+echo "First launch on another Mac: System Settings > Privacy & Security > Open Anyway (unsigned build)."

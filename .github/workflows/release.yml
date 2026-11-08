@@ -58,5 +58,7 @@ jobs:
           gh release create "v$VERSION" \
             "dist/Island-$VERSION.zip" \
             "dist/Island.zip" \
+            "dist/Island-$VERSION.dmg" \
+            "dist/Island.dmg" \
             --title "Island v$VERSION" \
             --generate-notes

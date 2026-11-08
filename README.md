@@ -24,7 +24,7 @@ curl -fsSL https://raw.githubusercontent.com/Arjun-Bhandari/Island/main/scripts/
 
 It downloads the latest release into `/Applications`, clears the quarantine flag (so the unsigned build isn't blocked), and opens Island.
 
-**Manual** — download `Island.zip` from [Releases](https://github.com/Arjun-Bhandari/Island/releases/latest) and unzip it. Because the build is unsigned, macOS blocks the first launch: open **System Settings → Privacy & Security** and click **Open Anyway** (on macOS 14 you can also right-click the app → Open). If Island isn't in Applications, the welcome tour offers to move it there for you.
+**Manual** — download `Island.dmg` from [Releases](https://github.com/Arjun-Bhandari/Island/releases/latest), open it and drag Island into Applications. Because the build is unsigned, macOS blocks the first launch: open **System Settings → Privacy & Security** and click **Open Anyway** (on macOS 14 you can also right-click the app → Open). If Island isn't in Applications, the welcome tour offers to move it there for you.
 
 On first launch a short welcome tour walks through the features and keyboard shortcuts and lets you turn on Launch at Login. Replay it any time from **Settings → Welcome tour**.
 
@@ -71,7 +71,7 @@ Each module follows the same shape: a `@Observable` store (state + persistence t
 ./scripts/build-app.sh
 ```
 
-This builds a release binary, assembles `Island.app` with the icon and `Info.plist`, ad-hoc signs it (no Apple Developer account needed), and zips it to `dist/`.
+This builds a release binary, assembles `Island.app` with the icon and `Info.plist`, ad-hoc signs it (no Apple Developer account needed), and packages it as `Island.dmg` (drag-to-Applications disk image) and `Island.zip` in `dist/`.
 
 ## Landing page
 

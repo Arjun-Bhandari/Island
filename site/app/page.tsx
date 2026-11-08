@@ -6,7 +6,7 @@ import { DownloadButton } from "./components/DownloadButton";
 const INSTALL_COMMAND =
   "curl -fsSL https://raw.githubusercontent.com/Arjun-Bhandari/Island/main/scripts/install.sh | bash";
 const DOWNLOAD_URL =
-  "https://github.com/Arjun-Bhandari/Island/releases/latest/download/Island.zip";
+  "https://github.com/Arjun-Bhandari/Island/releases/latest/download/Island.dmg";
 const REPO_URL = "https://github.com/Arjun-Bhandari/Island";
 
 const features = [
