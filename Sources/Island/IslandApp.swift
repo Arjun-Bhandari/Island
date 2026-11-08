@@ -17,7 +17,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var controller: NotchController?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        controller = NotchController()
-        controller?.show()
+        let controller = NotchController()
+        controller.show()
+        self.controller = controller
+
+        let onboarding = OnboardingWindowController.shared
+        onboarding.openNotch = { [weak controller] tab in controller?.open(on: tab) }
+        if OnboardingWindowController.shouldShowOnLaunch {
+            onboarding.show()
+        }
     }
 }

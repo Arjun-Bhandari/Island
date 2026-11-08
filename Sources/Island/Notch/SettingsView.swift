@@ -10,17 +10,17 @@ struct SettingsView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            launchAtLoginRow
-            keyboardOnlyRow
-
-            Divider().background(.white.opacity(0.1))
-
-            Text("Keyboard Shortcuts")
-                .font(.headline)
-                .foregroundStyle(.white)
-
             ScrollView {
-                VStack(spacing: 8) {
+                VStack(alignment: .leading, spacing: 10) {
+                    launchAtLoginRow
+                    keyboardOnlyRow
+
+                    Divider().background(.white.opacity(0.1))
+
+                    Text("Keyboard Shortcuts")
+                        .font(.headline)
+                        .foregroundStyle(.white)
+
                     ShortcutRow(label: "Toggle notch", name: .toggleNotch)
                     ShortcutRow(label: "Quick-add todo", name: .quickAddTodo)
                     ShortcutRow(label: "Quick-open scripts", name: .quickScripts)
@@ -31,17 +31,35 @@ struct SettingsView: View {
                     ShortcutRow(label: "Go to Monitor", name: .goMonitor)
                     ShortcutRow(label: "Go to Cleanup", name: .goCleanup)
                     ShortcutRow(label: "Go to Settings", name: .goSettings)
+
+                    Text("Esc closes the notch while it's open via keyboard. ⌘Q quits.")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
                 }
             }
-            .frame(maxHeight: 170)
 
-            Text("Esc always closes the notch while it's open via keyboard.")
-                .font(.caption2)
-                .foregroundStyle(.secondary)
+            footer
         }
         .padding(16)
         .frame(width: 520, alignment: .leading)
         .onAppear { launchAtLoginEnabled = loginItem.isEnabled }
+    }
+
+    /// Kept outside the scroll view so Quit is always one click away.
+    private var footer: some View {
+        HStack(spacing: 8) {
+            Text("Island \(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "dev")")
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+            Spacer()
+            PillButton(title: "Welcome tour", systemImage: "sparkles") {
+                OnboardingWindowController.shared.show()
+            }
+            PillButton(title: "Quit Island", systemImage: "power") {
+                NSApp.terminate(nil)
+            }
+            .help("Quit Island (⌘Q)")
+        }
     }
 
     private var keyboardOnlyRow: some View {

@@ -11,6 +11,8 @@ import KeyboardShortcuts
 @MainActor
 final class NotchController {
     static let keyboardOnlyKey = "keyboardOnlyMode"
+    private static weak var shared: NotchController?
+    private var isPresentingModal = false
 
     private var notch: DynamicNotch<NotchExpandedView, NotchCompactLeading, EmptyView>?
     private var cancellable: AnyCancellable?
@@ -35,6 +37,7 @@ final class NotchController {
             compactLeading: { NotchCompactLeading(store: todoStore, scriptStore: scriptStore) }
         )
         self.notch = notch
+        Self.shared = self
 
         cancellable = notch.objectWillChange.sink { [weak self] _ in
             // objectWillChange fires before isHovering updates; dispatch to read the new value.
@@ -80,7 +83,7 @@ final class NotchController {
             }
         } else {
             expandTask?.cancel()
-            guard !keyboardPinned else { return }
+            guard !keyboardPinned, !isPresentingModal else { return }
             collapseTask?.cancel()
             collapseTask = Task {
                 try? await Task.sleep(for: .milliseconds(120))
@@ -140,10 +143,39 @@ final class NotchController {
         Task { await notch.compact() }
     }
 
+    /// Opens the notch from outside the notch itself (e.g. the onboarding window's last step).
+    func open(on tab: NotchTab) {
+        openViaKeyboard(on: tab)
+    }
+
+    /// The notch panel sits at .screenSaver level, so a plain runModal() draws
+    /// the open panel *underneath* it, and moving the mouse onto the dialog
+    /// collapses the notch and throws away the form that asked for it. Raise
+    /// the dialog above the notch and hold the notch open until it's dismissed.
+    static func runModal(_ panel: NSOpenPanel) -> URL? {
+        let controller = shared
+        let notchWindow = controller?.notch?.windowController?.window
+        controller?.isPresentingModal = true
+        NSApp.activate(ignoringOtherApps: true)
+        panel.level = NSWindow.Level(rawValue: (notchWindow?.level ?? .screenSaver).rawValue + 1)
+        let url = panel.runModal() == .OK ? panel.url : nil
+        controller?.isPresentingModal = false
+        notchWindow?.makeKey()
+        if let controller, let notch = controller.notch, !notch.isHovering, !controller.keyboardPinned {
+            Task { await notch.compact() }
+        }
+        return url
+    }
+
     private func registerEscToClose() {
         escMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            guard let self, event.keyCode == 53 /* Esc */,
-                  event.window == self.notch?.windowController?.window else { return event }
+            guard let self, event.window == self.notch?.windowController?.window else { return event }
+            // An accessory app has no menu bar, so ⌘Q needs wiring by hand.
+            if event.modifierFlags.contains(.command), event.charactersIgnoringModifiers == "q" {
+                NSApp.terminate(nil)
+                return nil
+            }
+            guard event.keyCode == 53 /* Esc */ else { return event }
             self.closeViaKeyboard()
             return nil
         }
@@ -155,7 +187,7 @@ final class NotchController {
     /// panel (buttons, text fields) are never affected by this.
     private func registerOutsideClickToClose() {
         outsideClickMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
-            guard let self, self.keyboardPinned else { return }
+            guard let self, self.keyboardPinned, !self.isPresentingModal else { return }
             self.closeViaKeyboard()
         }
     }

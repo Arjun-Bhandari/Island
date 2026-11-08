@@ -44,13 +44,13 @@ final class CleanupScanner {
         scan()
     }
 
-    func pickRootDirectory() {
+    @MainActor func pickRootDirectory() {
         let panel = NSOpenPanel()
         panel.canChooseFiles = false
         panel.canChooseDirectories = true
         panel.allowsMultipleSelection = false
         panel.directoryURL = URL(fileURLWithPath: rootDirectory)
-        if panel.runModal() == .OK, let url = panel.url {
+        if let url = NotchController.runModal(panel) {
             rootDirectory = url.path
         }
     }
