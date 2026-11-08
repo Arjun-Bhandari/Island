@@ -50,14 +50,16 @@ LATEST_ZIP="$DIST_DIR/$APP_NAME.zip"
 cp "$ZIP_PATH" "$LATEST_ZIP"
 
 echo "==> Building disk image..."
-# Classic drag-to-install DMG: the app next to an Applications shortcut.
-DMG_STAGING="$(mktemp -d)"
-trap 'rm -rf "$DMG_STAGING"' EXIT
-ditto "$APP_BUNDLE" "$DMG_STAGING/$APP_NAME.app"
-ln -s /Applications "$DMG_STAGING/Applications"
+# Styled drag-to-install window (background art, icon layout). dmgbuild writes
+# Finder's .DS_Store directly, so it works headless on CI with no Finder scripting.
+DMG_VENV=".build/dmgbuild-venv"
+if [ ! -x "$DMG_VENV/bin/dmgbuild" ]; then
+    python3 -m venv "$DMG_VENV"
+    "$DMG_VENV/bin/pip" install --quiet "dmgbuild==1.6.7"
+fi
 DMG_PATH="$DIST_DIR/$APP_NAME-$VERSION.dmg"
 rm -f "$DMG_PATH"
-hdiutil create -quiet -volname "$APP_NAME" -srcfolder "$DMG_STAGING" -fs HFS+ -format UDZO -ov "$DMG_PATH"
+"$DMG_VENV/bin/dmgbuild" -s scripts/dmg-settings.py -D app="$APP_BUNDLE" "$APP_NAME" "$DMG_PATH"
 LATEST_DMG="$DIST_DIR/$APP_NAME.dmg"
 cp "$DMG_PATH" "$LATEST_DMG"
 
